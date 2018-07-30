@@ -1,0 +1,3 @@
+port: :8080
+wss_url: https://www.baidu.com
+time_interval: 5
