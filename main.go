@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/spf13/viper"
 	log "github.com/sirupsen/logrus"
-	"github.com/prometheus/client_golang/prometheus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,21 +12,13 @@ import (
 )
 
 var (
-	wssStatus = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "wss_status",
-			Help: "wss status exporter",
-		},
-		[]string{"wss_url"},
-	)
 	cfgFile      string
 	ListenPort   string
-	WssUrl       string
+	UrlList       []string
 	TimeInterval int
 )
 
 func init() {
-	prometheus.MustRegister(wssStatus)
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	}
@@ -53,12 +44,12 @@ func initVars() {
         ListenPort = ":8080"
     }
 
-	WssUrl = viper.GetString("wss_url")
+	UrlList = viper.GetStringSlice("url_list")
 	TimeInterval = viper.GetInt("time_interval")
 }
 
 func main() {
-	go scheduler.CheckWssStatus(WssUrl, TimeInterval, wssStatus)
+	go scheduler.CheckUrlStatus(UrlList, TimeInterval)
 	http.Handle("/metrics", promhttp.Handler())
 
 	// Start http server
